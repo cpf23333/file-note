@@ -10,16 +10,29 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:file-note.helloWorld"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "file-note.helloWorld",
-				"title": "Hello World"
+				"command": "open",
+				"title": "打开文件备注"
+			},
+			{
+				"command": "file-note.setNote",
+				"title": "设置备注"
 			}
-		]
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "file-note.setNote",
+					"when": "explorerResourceIsFolder",
+					"group": "1_modification"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

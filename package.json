@@ -21,14 +21,15 @@
 			},
 			{
 				"command": "file-note.setNote",
-				"title": "设置备注"
+				"title": "设置备注标题",
+				"shortTitle": "设置备注"
 			}
 		],
 		"menus": {
 			"explorer/context": [
 				{
 					"command": "file-note.setNote",
-					"when": "explorerResourceIsFolder",
+					"when": "explorerResourceIsFolder||resourceScheme == file",
 					"group": "1_modification"
 				}
 			]

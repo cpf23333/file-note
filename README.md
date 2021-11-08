@@ -1,6 +1,6 @@
-# file-note README
+# file-notes README
 
-This is the README for your extension "file-note". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "file-notes". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

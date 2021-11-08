@@ -1,6 +1,6 @@
 {
-	"name": "file-note",
-	"displayName": "file Note",
+	"name": "file-notes",
+	"displayName": "file Notes",
 	"description": "文件夹备注",
 	"version": "0.0.1",
 	"engines": {
@@ -20,7 +20,7 @@
 				"title": "打开文件备注"
 			},
 			{
-				"command": "file-note.setNote",
+				"command": "file-notes.setNote",
 				"title": "设置备注标题",
 				"shortTitle": "设置备注"
 			}
@@ -28,8 +28,8 @@
 		"menus": {
 			"explorer/context": [
 				{
-					"command": "file-note.setNote",
-					"when": "explorerResourceIsFolder||resourceScheme == file",
+					"command": "file-notes.setNote",
+					"when": "resourceScheme == file",
 					"group": "1_modification"
 				}
 			]

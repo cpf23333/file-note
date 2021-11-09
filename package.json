@@ -3,6 +3,17 @@
 	"displayName": "file Notes",
 	"description": "文件夹备注",
 	"version": "0.0.1",
+	"author": "cpf23333",
+	"publisher": "cpf23333",
+	"keywords": [
+		"file",
+		"folder",
+		"remark",
+		"note",
+		"文件夹",
+		"文件",
+		"备注"
+	],
 	"engines": {
 		"vscode": "^1.62.0"
 	},
@@ -52,5 +63,9 @@
 		"glob": "^7.1.7",
 		"mocha": "^9.1.1",
 		"typescript": "^4.4.3"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://gitee.com/cpf23333/file-note"
 	}
 }

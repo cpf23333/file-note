@@ -1,7 +1,35 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-
+/**
+ * 备注提示注册器
+ */
+export class NoteDecorationProvider {
+  public disposables;
+  constructor() {
+    this.disposables = [];
+    this.disposables.push(vscode.window.registerFileDecorationProvider(this));
+  }
+  provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration {
+    let relativePath = getRelativePath(uri);
+    let txt = getNote(relativePath);
+    if (!txt) {
+      return {};
+    }
+    return {
+      tooltip: txt,
+      propagate: true,
+    };
+  }
+  dispose() {
+    this.disposables.forEach((d) => d.dispose());
+  }
+}
+let provider;
+export function createProvider() {
+  provider = new NoteDecorationProvider();
+  return provider;
+}
 export function getBasePath(uri: vscode.Uri) {
   return vscode.workspace.getWorkspaceFolder(uri);
 }
@@ -38,7 +66,7 @@ export function init() {
   }
   // 将文件写入储存目录
   if (!fs.existsSync(path.join(url, "file-notes.json"))) {
-    fs.writeFileSync(path.join(url, "file-notes.json"), JSON.stringify({}));
+    fs.writeFileSync(path.join(url, "file-notes.json"), "{}");
     notes = {};
   } else {
     let jsonPath = path.join(url, "file-notes.json");

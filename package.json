@@ -16,10 +16,6 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "open",
-				"title": "打开文件备注"
-			},
-			{
 				"command": "file-notes.setNote",
 				"title": "设置备注标题",
 				"shortTitle": "设置备注"
@@ -30,7 +26,7 @@
 				{
 					"command": "file-notes.setNote",
 					"when": "resourceScheme == file",
-					"group": "1_modification"
+					"group": "2_workspace"
 				}
 			]
 		}

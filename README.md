@@ -6,6 +6,8 @@
 
 给文件及文件夹设置备注，显示在title当中，
 备注数据存储在.vscode/file-note.json中，后续应该会提供设置指定文件位置
+![](https://s3.bmp.ovh/imgs/2021/11/d5973b81fe9a6d61.png)
+
 ![](https://s3.bmp.ovh/imgs/2021/11/319f3fc844a21705.png)
 
 ![](https://s3.bmp.ovh/imgs/2021/11/1c10d3074eab0532.png)

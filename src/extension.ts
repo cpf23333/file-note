@@ -2,7 +2,10 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { getNote, getRelativePath, init, saveNote } from "./utils/utils";
-class CountDecorationProvider {
+/**
+ * 备注提示注册器
+ */
+class NoteDecorationProvider {
   public disposables;
   constructor() {
     this.disposables = [];
@@ -27,10 +30,15 @@ class CountDecorationProvider {
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   init();
-  let provider = new CountDecorationProvider();
+  let provider = new NoteDecorationProvider();
   let setNote = vscode.commands.registerCommand(
     "file-notes.setNote",
     (uri: vscode.Uri) => {
+      if (!uri) {
+        return vscode.window.showErrorMessage(
+          "请从资源管理器右键，点击设置备注使用此功能"
+        );
+      }
       let relativePath = getRelativePath(uri);
       let val = getNote(relativePath);
       provider.provideFileDecoration(uri);

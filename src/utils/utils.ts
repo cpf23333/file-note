@@ -70,11 +70,20 @@ export function init() {
     notes = {};
   } else {
     let jsonPath = path.join(url, "file-notes.json");
-    let content =
+    let content = JSON.parse(
       fs.readFileSync(jsonPath, {
         encoding: "utf-8",
-      }) || "{}";
-    notes = JSON.parse(content) || {};
+      }) || "{}"
+    );
+    for (const key in content) {
+      if (Object.prototype.hasOwnProperty.call(content, key)) {
+        const one = content[key];
+        if (!one || one === "") {
+          delete content[key];
+        }
+      }
+    }
+    notes = content || {};
   }
 }
 export function save2JSON() {

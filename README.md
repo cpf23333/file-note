@@ -6,11 +6,11 @@
 
 给文件及文件夹设置备注，显示在 title 当中，
 备注数据存储在.vscode/file-note.json 中，后续应该会提供设置指定文件位置
-![](https://s3.bmp.ovh/imgs/2021/11/d5973b81fe9a6d61.png)
+![](https://gitee.com/cpf23333/file-note/raw/master/images/setting.png)
 
-![](https://s3.bmp.ovh/imgs/2021/11/319f3fc844a21705.png)
+![](https://gitee.com/cpf23333/file-note/raw/master/images/noteScreen.png)
 
-![](https://s3.bmp.ovh/imgs/2021/11/1c10d3074eab0532.png)
+![](https://gitee.com/cpf23333/file-note/raw/master/images/longNoteScreen.png)
 
 ## Extension Settings
 

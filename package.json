@@ -2,7 +2,7 @@
 	"name": "file-notes",
 	"displayName": "file Notes",
 	"description": "文件夹备注",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"author": "cpf23333",
 	"publisher": "cpf23333",
 	"keywords": [
@@ -41,6 +41,15 @@
 					"group": "2_workspace"
 				}
 			]
+		},
+		"configuration": {
+			"properties": {
+				"fileNotes.fileName": {
+					"type": "string",
+					"description": "备注json文件名",
+					"default": "file-notes.json"
+				}
+			}
 		}
 	},
 	"scripts": {
@@ -67,5 +76,9 @@
 	"repository": {
 		"type": "git",
 		"url": "https://gitee.com/cpf23333/file-note"
-	}
+	},
+	"bugs": {
+		"url": "https://gitee.com/cpf23333/file-note/issues"
+	},
+	"license": "MIT"
 }

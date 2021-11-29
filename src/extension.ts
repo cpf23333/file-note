@@ -7,14 +7,15 @@ import {
   getRelativePath,
   init,
   saveNote,
+  settingChangeWatcher,
 } from "./utils/utils";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   let provider = createProvider();
-  init();
-  
+  init(context);
+  context.subscriptions.push(settingChangeWatcher());
   let setNote = vscode.commands.registerCommand(
     "file-notes.setNote",
     (uri: vscode.Uri) => {

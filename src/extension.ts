@@ -29,7 +29,10 @@ export function activate(context: vscode.ExtensionContext) {
       provider.provideFileDecoration(uri);
       vscode.window
         .showInputBox({ title: "请输入本文件或文件夹的备注", value: val })
-        .then((txt = "") => {
+        .then((txt: any) => {
+          if (typeof txt === "undefined") {
+            return;
+          }
           saveNote(relativePath, txt);
           provider.dispose();
           provider = createProvider();

@@ -21,10 +21,32 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"*",
+		"onView:files1"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "file_note_explorer",
+					"icon": "images/dep.svg",
+					"title": "备注树"
+				}
+			]
+		},
+		"views": {
+			"file_note_explorer": [
+				{
+					"id": "files1",
+					"name": "文件夹结构"
+				},
+				{
+					"id": "files2",
+					"name": "已有配置"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "file-notes.setNote",

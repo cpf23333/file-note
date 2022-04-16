@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import { barRegister } from "./utils/tree";
 import {
   createProvider,
   getNote,
@@ -41,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
   context.subscriptions.push(setNote);
+  barRegister();
 }
 
 // this method is called when your extension is deactivated

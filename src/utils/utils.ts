@@ -45,13 +45,101 @@ export function getRelativePath(pathUri: vscode.Uri): string {
 }
 
 export let notes: Record<string, any> = {};
-let note2Add: string | undefined = undefined;
-export function setTempNote(txt: string | undefined) {
-  note2Add = txt;
+export type obj = Record<string, any>;
+export type item = { children?: item[]; label?: string; value?: string };
+class Note {
+  notes: obj = {};
+  tree: item = { children: [], label: "根目录" };
+  fileName = "";
+  constructor() {
+    this.fileName =
+      vscode.workspace.getConfiguration().get("fileNotes.fileName") ||
+      "file-note.json";
+    let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
+      .fsPath;
+    let url = path.join(settingJsonPath, ".vscode").replace(/\\/g, "/");
+    if (!fs.existsSync(path.join(url, this.fileName))) {
+      this.notes = {};
+    } else {
+      let jsonPath = path.join(url, this.fileName);
+      let content = JSON.parse(
+        fs.readFileSync(jsonPath, {
+          encoding: "utf-8",
+        }) || "{}"
+      );
+      for (const key in content) {
+        if (Object.prototype.hasOwnProperty.call(content, key)) {
+          const one = content[key];
+          if (!one || one === "") {
+            delete content[key];
+          }
+        }
+      }
+      this.notes = content || {};
+    }
+    this.setTree();
+    setInterval(() => {
+      console.log(this.notes, this.tree);
+    }, 1000);
+  }
+  private save2JSON() {
+    let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
+      .fsPath;
+    let url = path.join(settingJsonPath, ".vscode");
+    if (!fs.existsSync(url)) {
+      fs.mkdirSync(url);
+    }
+    if (!fs.existsSync(path.join(url, fileName))) {
+      fs.writeFileSync(path.join(url, fileName), "{}");
+    }
+    fs.writeFileSync(
+      path.join(url, fileName),
+      JSON.stringify(this.notes, null, "\t")
+    );
+  }
+  private setItem(key: string, val: string) {
+    let keys = key.split("/").filter((one) => one);
+    let temp: item = this.tree;
+    keys.forEach((label, i) => {
+      let t = temp?.children?.find((one) => one.label === label) || undefined;
+      let newData: item = { children: [], label };
+      if (t) {
+        temp = t;
+        newData = t;
+      } else {
+        temp?.children?.push(newData);
+      }
+      if (i === keys.length - 1) {
+        newData.value = val;
+        newData.children = undefined;
+      }
+      temp = newData;
+    });
+  }
+  private setTree() {
+    let data = this.notes;
+    try {
+      for (const key in data) {
+        if (Object.hasOwnProperty.call(data, key)) {
+          const val = data[key];
+          this.setItem(key, val);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  updateData(key: string, val: string) {
+    this.notes[key] = val;
+    this.save2JSON();
+    this.setTree();
+  }
 }
-export function getTempNote() {
-  return note2Add;
-}
+console.log("开始实例化");
+
+export let noteObj = new Note();
+console.log("note", noteObj);
+
 export function saveNote(key: string, val: string) {
   notes[key] = val;
   save2JSON();
@@ -83,6 +171,7 @@ export function init(content: vscode.ExtensionContext) {
       }
     }
     notes = content || {};
+    console.log("notes数据", notes);
   }
 }
 export function save2JSON() {

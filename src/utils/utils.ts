@@ -45,11 +45,11 @@ export function getRelativePath(pathUri: vscode.Uri): string {
 }
 
 export let notes: Record<string, any> = {};
-export type obj = Record<string, any>;
-export type item = { children?: item[]; label?: string; value?: string };
+export type Obj = Record<string, any>;
+export type Item = { children?: Item[]; label?: string; value?: string };
 class Note {
-  notes: obj = {};
-  tree: item = { children: [], label: "根目录" };
+  notes: Obj = {};
+  tree: Item = { children: [], label: "根目录" };
   fileName = "";
   constructor() {
     this.fileName =
@@ -78,9 +78,6 @@ class Note {
       this.notes = content || {};
     }
     this.setTree();
-    setInterval(() => {
-      console.log(this.notes, this.tree);
-    }, 1000);
   }
   private save2JSON() {
     let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
@@ -99,10 +96,10 @@ class Note {
   }
   private setItem(key: string, val: string) {
     let keys = key.split("/").filter((one) => one);
-    let temp: item = this.tree;
+    let temp: Item = this.tree;
     keys.forEach((label, i) => {
       let t = temp?.children?.find((one) => one.label === label) || undefined;
-      let newData: item = { children: [], label };
+      let newData: Item = { children: [], label };
       if (t) {
         temp = t;
         newData = t;

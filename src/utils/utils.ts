@@ -104,6 +104,9 @@ class Note {
         temp = t;
         newData = t;
       } else {
+        if (!temp.children) {
+          temp.children = [];
+        }
         temp?.children?.push(newData);
       }
       if (i === keys.length - 1) {

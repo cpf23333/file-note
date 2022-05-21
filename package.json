@@ -97,10 +97,10 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://gitee.com/cpf23333/file-note"
+		"url": "https://github.com/cpf23333/file-note"
 	},
 	"bugs": {
-		"url": "https://gitee.com/cpf23333/file-note/issues"
+		"url": "https://github.com/cpf23333/file-note/issues"
 	},
 	"license": "MIT"
 }

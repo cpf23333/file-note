@@ -6,11 +6,11 @@
 
 给文件及文件夹设置备注，显示在 title 当中，
 备注数据存储在.vscode/file-note.json 中，后续应该会提供设置指定文件位置
-![](https://gitee.com/cpf23333/file-note/raw/master/images/setting.png)
+![](https://github.com/cpf23333/file-note/raw/master/images/setting.png)
 
-![](https://gitee.com/cpf23333/file-note/raw/master/images/noteScreen.png)
+![](https://github.com/cpf23333/file-note/raw/master/images/noteScreen.png)
 
-![](https://gitee.com/cpf23333/file-note/raw/master/images/longNoteScreen.png)
+![](https://github.com/cpf23333/file-note/raw/master/images/longNoteScreen.png)
 
 ## Extension Settings
 
@@ -32,6 +32,6 @@
 **Note:**
 
 这是我写的第一个插件，vscode 的 api 都不咋熟，欢迎提 issue 和 pr
-https://gitee.com/cpf23333/file-note
+https://github.com/cpf23333/file-note
 
 **Enjoy!**

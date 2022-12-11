@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import * as path from "path";
+import * as Path from "path";
 import { defaultFileName, fileName, setFileName } from "../config/index";
+import { eventr } from "./eventer";
 /**
  * 备注提示注册器
  */
@@ -12,8 +13,7 @@ export class NoteDecorationProvider {
     this.disposables.push(vscode.window.registerFileDecorationProvider(this));
   }
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration {
-    let relativePath = getRelativePath(uri);
-    let txt = getNote(relativePath);
+    let txt = noteInstance.getNote(uri.fsPath);
     if (!txt) {
       return {};
     }
@@ -23,168 +23,228 @@ export class NoteDecorationProvider {
     };
   }
   dispose() {
-    this.disposables.forEach((d) => d.dispose());
+    this.disposables.forEach((d) => {
+      d.dispose();
+    });
   }
 }
 /**
  * 提示提供器实例
  */
 let provider: NoteDecorationProvider;
+// 这么写是因为更新备注后需要重新生成提示，就把旧的备注提供器删掉
 export function createProvider() {
+  provider?.dispose?.();
   provider = new NoteDecorationProvider();
   return provider;
 }
 export function getBasePath(uri: vscode.Uri) {
   return vscode.workspace.getWorkspaceFolder(uri);
 }
-export function getRelativePath(pathUri: vscode.Uri): string {
-  let basePath = getBasePath(pathUri)?.uri.fsPath || "";
-  basePath = basePath.slice(0, basePath.length);
-  let path = pathUri.fsPath;
-  return path.replace(basePath, "").replace(/\\/g, "/");
-}
 
 export let notes: Record<string, any> = {};
 export type Obj = Record<string, any>;
 export type Item = { children?: Item[]; label?: string; value?: string };
+/**
+ * 获取备注数据存储的文件名
+ */
+export function getFileName(): string {
+  let customed =
+    vscode.workspace.getConfiguration().get("fileNotes.fileName") ||
+    defaultFileName;
+  if (typeof customed !== "string") {
+    customed = String(customed);
+  }
+  return customed ? String(customed) : defaultFileName;
+}
+/**
+ *
+ * @param path
+ * @returns
+ */
+function readFileByPath(path: string) {
+  if (fs.existsSync(path)) {
+    return JSON.parse(fs.readFileSync(path, { encoding: "utf-8" }) || "{}");
+  }
+  return {};
+}
+function filterData(content: Record<string, any> = {}) {
+  for (const key in content) {
+    if (Object.prototype.hasOwnProperty.call(content, key)) {
+      const one = content[key];
+      if (!one || one === "") {
+        delete content[key];
+      }
+    }
+  }
+}
+/**把传入的路径的反斜杠全替换成普通斜杠 */
+function transformBackslash(str: string = "") {
+  return str.replace(/\\/g, "/");
+}
+function openedFolers() {
+  return vscode.workspace.workspaceFolders?.map((folder) =>
+    transformBackslash(folder.uri.fsPath)
+  );
+}
+/**传入一个路径，顺序向上查找有.git文件夹的路径，没有会返回undefined */
+function getGitPath(fsPath: string) {
+  fsPath = transformBackslash(fsPath);
+  while (fsPath) {
+    if (fs.existsSync(Path.join(fsPath, ".git"))) {
+      return fsPath;
+    } else if (openedFolers()?.some((o) => o === fsPath)) {
+      return;
+    } else {
+      let lastIndex = fsPath.lastIndexOf("/");
+      if (lastIndex !== -1) {
+        fsPath = fsPath.slice(0, lastIndex);
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+function getVscodeConfigPath(fsPath: string) {
+  fsPath = transformBackslash(fsPath);
+
+  while (fsPath) {
+    if (fs.existsSync(Path.join(fsPath, ".vscode"))) {
+      return fsPath;
+    } else if (openedFolers()?.some((o) => o === fsPath)) {
+      return;
+    } else {
+      let lastIndex = fsPath.lastIndexOf("/");
+      if (lastIndex !== -1) {
+        fsPath = fsPath.slice(0, lastIndex);
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+/**传入两个路径，第二个要在第一个内，返回第二个路径在第一个路径内的相对路径 */
+function getChildPath(parentPath: string, childPath: string) {
+  let path = childPath.replace(parentPath, "");
+  if (path.startsWith("/")) {
+    return path.slice(1, path.length);
+  }
+  return path;
+}
 class Note {
-  notes: Obj = {};
   tree: Item = { children: [], label: "根目录" };
+  /**各子文件夹的备注数据 */
+  pathNodes: Record<string, Record<string, string>> = {};
   fileName = "";
   constructor() {
-    this.fileName =
-      vscode.workspace.getConfiguration().get("fileNotes.fileName") ||
-      "file-note.json";
-    let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
-      .fsPath;
-    let url = path.join(settingJsonPath, ".vscode").replace(/\\/g, "/");
-    if (!fs.existsSync(path.join(url, this.fileName))) {
-      this.notes = {};
-    } else {
-      let jsonPath = path.join(url, this.fileName);
-      let content = JSON.parse(
-        fs.readFileSync(jsonPath, {
-          encoding: "utf-8",
-        }) || "{}"
-      );
-      for (const key in content) {
-        if (Object.prototype.hasOwnProperty.call(content, key)) {
-          const one = content[key];
-          if (!one || one === "") {
-            delete content[key];
-          }
-        }
-      }
-      this.notes = content || {};
-    }
-    this.setTree();
+    this.fileName = getFileName();
+    let ignoreFolderArr = ["node_modules", ".git", "target", "dist"];
+    let exclude = ignoreFolderArr.map((o) => `**/${o}/**`).toString();
+
+    vscode.workspace
+      .findFiles("**/.vscode/" + this.fileName, exclude)
+      .then((uris) => {
+        uris.forEach((uri) => {
+          let content = readFileByPath(uri.fsPath);
+          let projectRoot = Path.resolve(uri.fsPath, "../../");
+          projectRoot = transformBackslash(projectRoot);
+          this.pathNodes[projectRoot] = content;
+        });
+        console.log("data", this.pathNodes);
+        eventr.emit("findFilesReady");
+      });
   }
-  private save2JSON() {
-    let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
-      .fsPath;
-    let url = path.join(settingJsonPath, ".vscode");
-    if (!fs.existsSync(url)) {
-      fs.mkdirSync(url);
+  /**
+   *更新备注数据并将备注写入json
+   * @param path 项目地址
+   * @param content file-notes.json的内容
+   */
+  updateAndWrite2JSON(path: string, content: any) {
+    this.pathNodes[path] = content;
+    let str = JSON.stringify(content, null, "\t");
+    let vscodeDirPath = Path.join(path, ".vscode");
+    if (!fs.existsSync(vscodeDirPath)) {
+      fs.mkdirSync(vscodeDirPath);
     }
-    if (!fs.existsSync(path.join(url, fileName))) {
-      fs.writeFileSync(path.join(url, fileName), "{}");
-    }
-    fs.writeFileSync(
-      path.join(url, fileName),
-      JSON.stringify(this.notes, null, "\t")
-    );
-  }
-  private setItem(key: string, val: string) {
-    let keys = key.split("/").filter((one) => one);
-    let temp: Item = this.tree;
-    keys.forEach((label, i) => {
-      let t = temp?.children?.find((one) => one.label === label) || undefined;
-      let newData: Item = { children: [], label };
-      if (t) {
-        temp = t;
-        newData = t;
-      } else {
-        if (!temp.children) {
-          temp.children = [];
-        }
-        temp?.children?.push(newData);
-      }
-      if (i === keys.length - 1) {
-        newData.value = val;
-        newData.children = undefined;
-      }
-      temp = newData;
+    fs.writeFileSync(Path.join(vscodeDirPath, fileName), str, {
+      encoding: "utf-8",
+      flag: "w+",
     });
   }
-  private setTree() {
-    let data = this.notes;
-    try {
-      for (const key in data) {
-        if (Object.hasOwnProperty.call(data, key)) {
-          const val = data[key];
-          this.setItem(key, val);
+  saveNote(fsPath: string, val: string) {
+    fsPath = transformBackslash(fsPath);
+    let path = getGitPath(fsPath);
+    // 该路径在某个git仓库下
+    if (path) {
+      console.log("gitPath", path);
+      let noteData = this.pathNodes[path] || {};
+      let relativePath = getChildPath(path, fsPath);
+      noteData[relativePath] = val;
+      this.updateAndWrite2JSON(path, noteData);
+    } else {
+      // 尝试获取.vscode文件夹的父级路径，有这个文件夹视为一个项目
+      let path = getVscodeConfigPath(fsPath);
+      let noteData: Record<string, string> = {};
+      if (path) {
+        let relativePath = getChildPath(path, fsPath);
+        noteData[relativePath] = val;
+        this.updateAndWrite2JSON(path, noteData);
+      } else {
+        // 还找不着，存储至当前文件夹根目录的.vscode文件夹里
+        let targetPath = openedFolers()?.find((folderPath) =>
+          fsPath.includes(folderPath)
+        );
+        if (targetPath) {
+          let relativePath = getChildPath(targetPath, fsPath);
+          noteData[relativePath] = val;
+          this.updateAndWrite2JSON(targetPath, noteData);
+        }
+        // let optinon: vscode.OpenDialogOptions = {
+        //   canSelectFiles: false,
+        //   canSelectFolders: true,
+        //   canSelectMany: false,
+        //   title:
+        //     "未找到git仓库及vscode配置路径，请指定备注存储至哪个文件夹的.vscode文件夹中",
+        // };
+        // vscode.window.showOpenDialog(optinon).then((uris) => {
+        //   if (uris) {
+        //     let uri = uris[0];
+        //     console.log("选中的", uris[0]);
+        //   } else {
+        //     vscode.window.showErrorMessage("未选择保存路径，备注存储失败");
+        //   }
+        // });
+      }
+    }
+
+    return;
+  }
+  getNote(fsPath: string) {
+    fsPath = transformBackslash(fsPath);
+    for (const path in this.pathNodes) {
+      if (Object.prototype.hasOwnProperty.call(this.pathNodes, path)) {
+        if (fsPath.includes(path)) {
+          const obj = this.pathNodes[path];
+          let relativePath = getChildPath(path, fsPath);
+          let res = obj[relativePath];
+          return res;
         }
       }
-    } catch (error) {
-      console.log(error);
     }
-  }
-  updateData(key: string, val: string) {
-    this.notes[key] = val;
-    this.save2JSON();
-    this.setTree();
+    return "";
   }
 }
-console.log("开始实例化");
 
-export let noteObj = new Note();
-console.log("note", noteObj);
+export let noteInstance = new Note();
 
-export function saveNote(key: string, val: string) {
-  notes[key] = val;
-  save2JSON();
-}
-export function getNote(key: string) {
-  return notes[key];
-}
 /**初始化 */
 export function init(content: vscode.ExtensionContext) {
-  setFileName(vscode.workspace.getConfiguration().get("fileNotes.fileName"));
-  let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
-    .fsPath;
-  let url = path.join(settingJsonPath, ".vscode").replace(/\\/g, "/");
-  if (!fs.existsSync(path.join(url, fileName))) {
-    notes = {};
-  } else {
-    let jsonPath = path.join(url, fileName);
-    let content = JSON.parse(
-      fs.readFileSync(jsonPath, {
-        encoding: "utf-8",
-      }) || "{}"
-    );
-    for (const key in content) {
-      if (Object.prototype.hasOwnProperty.call(content, key)) {
-        const one = content[key];
-        if (!one || one === "") {
-          delete content[key];
-        }
-      }
-    }
-    notes = content || {};
-    console.log("notes数据", notes);
-  }
-}
-export function save2JSON() {
-  let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
-    .fsPath;
-  let url = path.join(settingJsonPath, ".vscode");
-  if (!fs.existsSync(url)) {
-    fs.mkdirSync(url);
-  }
-  if (!fs.existsSync(path.join(url, fileName))) {
-    fs.writeFileSync(path.join(url, fileName), "{}");
-  }
-  fs.writeFileSync(path.join(url, fileName), JSON.stringify(notes, null, "\t"));
+  setFileName(
+    vscode.workspace.getConfiguration().get("fileNotes.fileName") ||
+      defaultFileName
+  );
 }
 /**
  * 迁移备注至新文件
@@ -202,13 +262,13 @@ export function migrate() {
   }
   let settingJsonPath = (vscode.workspace.workspaceFolders || [])[0]?.uri
     .fsPath;
-  let url = path.join(settingJsonPath, ".vscode");
-  if (fs.existsSync(path.join(url, newfileName))) {
+  let url = Path.join(settingJsonPath, ".vscode");
+  if (fs.existsSync(Path.join(url, newfileName))) {
     // vscode.window.showInformationMessage("文件已存在");
     // return;
     let fileNotes =
       JSON.parse(
-        fs.readFileSync(path.join(url, newfileName), { encoding: "utf-8" })
+        fs.readFileSync(Path.join(url, newfileName), { encoding: "utf-8" })
       ) || {};
     if (fileNotes instanceof Object) {
       Object.assign(notes, fileNotes);
@@ -216,14 +276,14 @@ export function migrate() {
   }
 
   fs.writeFileSync(
-    path.join(url, newfileName),
+    Path.join(url, newfileName),
     JSON.stringify(notes, null, "\t")
   );
   vscode.window
     .showInformationMessage("迁移完成，是否删除旧配置？", "是", "否")
     .then((res) => {
       if (res === "是") {
-        fs.unlinkSync(path.join(url, fileName));
+        fs.unlinkSync(Path.join(url, fileName));
       }
       setFileName(newfileName);
       provider.dispose();
@@ -236,7 +296,7 @@ export function settingChangeWatcher() {
     debounce(() => {
       let newSettings: string =
         vscode.workspace.getConfiguration().get("fileNotes.fileName") ||
-        "file-notes.json";
+        defaultFileName;
       if (!newSettings.endsWith(".json")) {
         newSettings = newSettings + ".json";
       }

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Item, noteObj } from "./utils";
+import { Item, noteInstance } from "./utils";
 export class EntryItem extends vscode.TreeItem {
   constructor(
     label: string | vscode.TreeItemLabel,
@@ -57,7 +57,7 @@ export class EntryList implements vscode.TreeDataProvider<EntryItem> {
     return element;
   }
   getChildren(element?: Item): Thenable<EntryItem[] | any | undefined> {
-    let note: Item = noteObj.tree;
+    let note: Item = noteInstance.tree;
     if (element) {
       let target = getTargetByLabel(note, String(element.label));
       return Promise.resolve(this.getEntryItems(target?.children || []));
@@ -66,15 +66,6 @@ export class EntryList implements vscode.TreeDataProvider<EntryItem> {
       return Promise.resolve(res);
     }
   }
-}
-
-export function setTree() {
-  const rootPath =
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : undefined;
-  //   vscode.window.registerTreeDataProvider("file-note-explorer",);
 }
 export function barRegister() {
   let bar = new EntryList();

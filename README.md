@@ -5,7 +5,7 @@
 ## Features
 
 给文件及文件夹设置备注，显示在 title 当中，
-备注数据存储在.vscode/file-note.json 中，后续应该会提供设置指定文件位置
+备注数据存储在.vscode/file-notes.json 中，后续应该会提供设置指定文件位置
 ![](https://github.com/cpf23333/file-note/raw/master/images/setting.png)
 
 ![](https://github.com/cpf23333/file-note/raw/master/images/noteScreen.png)
@@ -20,7 +20,7 @@
 
 如果文件夹内包含未提交的文件或其中有文件存在错误，提示会被 <b>包含强调项</b> 字样覆盖，暂时没有找到解决办法
 
-手动更改 file-note.json 需重启 vscode 才能生效
+手动更改 file-notes.json 需重启 vscode 才能生效
 
 ## Release Notes
 

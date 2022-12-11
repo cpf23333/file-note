@@ -21,10 +21,32 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"*",
+		"onView:files1"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "file_note_explorer",
+					"icon": "images/dep.svg",
+					"title": "备注树"
+				}
+			]
+		},
+		"views": {
+			"file_note_explorer": [
+				{
+					"id": "files1",
+					"name": "文件夹结构"
+				},
+				{
+					"id": "files2",
+					"name": "已有配置"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "file-notes.setNote",
@@ -41,6 +63,15 @@
 					"group": "2_workspace"
 				}
 			]
+		},
+		"configuration": {
+			"properties": {
+				"fileNotes.fileName": {
+					"type": "string",
+					"description": "备注json文件名",
+					"default": "file-notes.json"
+				}
+			}
 		}
 	},
 	"scripts": {
@@ -71,8 +102,5 @@
 	"bugs": {
 		"url": "https://github.com/cpf23333/file-note/issues"
 	},
-	"license": "MIT",
-	"dependencies": {
-		"tiny-emitter": "^2.1.0"
-	}
+	"license": "MIT"
 }
